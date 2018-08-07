@@ -7,8 +7,8 @@
     <ProjectGuid>{DECB758D-F5A2-4EF9-82F6-618506EE2FC6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Epsil0neR</RootNamespace>
-    <AssemblyName>Epsil0neR.Core</AssemblyName>
+    <RootNamespace>Epsiloner</RootNamespace>
+    <AssemblyName>Epsiloner.Core</AssemblyName>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -28,7 +28,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\Epsil0neR.Core.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\Epsiloner.Core.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>

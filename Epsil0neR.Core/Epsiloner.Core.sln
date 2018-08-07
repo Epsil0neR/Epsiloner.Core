@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2042
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Epsil0neR.Core", "Epsil0neR.Core\Epsil0neR.Core.csproj", "{DECB758D-F5A2-4EF9-82F6-618506EE2FC6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Epsiloner.Core", "Epsil0neR.Core\Epsiloner.Core.csproj", "{DECB758D-F5A2-4EF9-82F6-618506EE2FC6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

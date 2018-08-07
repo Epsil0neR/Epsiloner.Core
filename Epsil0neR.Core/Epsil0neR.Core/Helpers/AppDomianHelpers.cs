@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace Epsil0neR.Helpers
+namespace Epsiloner.Helpers
 {
     /// <summary>
     /// Extension methods for <see cref="AppDomain"/>.

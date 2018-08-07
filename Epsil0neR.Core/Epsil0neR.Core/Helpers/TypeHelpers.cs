@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Epsil0neR.Helpers
+namespace Epsiloner.Helpers
 {
     /// <summary>
     /// Extension methods for <see cref="Type"/>.
