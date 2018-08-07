@@ -14,12 +14,16 @@ namespace Epsil0neR.Helpers
         /// Loads all matching search pattern assemblies except assemblies.
         /// If assembly already loaded, it's OK.
         /// </summary>
-        /// <param name="appDomain"></param>
-        /// <param name="searchPattern"></param>
+        /// <param name="appDomain">Application domain.</param>
+        /// <param name="searchPattern">
+        ///  The search string to match against the names of files in path. This parameter
+        ///  can contain a combination of valid literal path and wildcard (* and ?) characters
+        ///  (see Remarks), but doesn't support regular expressions.</param>
+        /// <param name="fileMatchFunc">Optional function to check if assembly with specified name should be loaded.</param>
         /// <example>
         /// AppDomain.CurrentDomain.LoadAssemblies("test.*.dll");
         /// </example>
-        public static void LoadAssemblies(this AppDomain appDomain, string searchPattern = null)
+        public static void LoadAssemblies(this AppDomain appDomain, string searchPattern = null, Func<string, bool> fileMatchFunc = null)
         {
             if (string.IsNullOrWhiteSpace(searchPattern))
                 searchPattern = "*.dll";
@@ -29,8 +33,24 @@ namespace Epsil0neR.Helpers
             var matching = Directory.GetFiles(path, searchPattern);
             foreach (var file in matching)
             {
-                var loaded = ad.GetAssemblies().Any(x => x.Location == file);
+                var loaded = ad.GetAssemblies().Any(x =>
+                {
+                    //Assembly of type System.Reflection.Emit.InternalAssemblyBuilder
+                    //has property .Location which throws exception, but that type is internal,
+                    //so signle way is to use try..catch
+                    try
+                    {
+                        return x.Location == file;
+                    }
+                    catch (Exception)
+                    {
+                        return false;
+                    }
+                });
                 if (loaded)
+                    continue;
+
+                if (fileMatchFunc?.Invoke(file) == false)
                     continue;
 
                 var asm = Assembly.LoadFile(file);
