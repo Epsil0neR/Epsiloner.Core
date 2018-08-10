@@ -13,7 +13,7 @@ namespace Epsiloner.Helpers
         /// </summary>
         /// <param name="input">Flags</param>
         /// <returns>List of flag values.</returns>
-        private static IEnumerable<Enum> GetFlags(this Enum input)
+        public static IEnumerable<Enum> GetFlags(this Enum input)
         {
             foreach (Enum value in Enum.GetValues(input.GetType()))
                 if (input.HasFlag(value))
