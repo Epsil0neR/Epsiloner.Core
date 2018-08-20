@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace Epsiloner.Attributes
 {
@@ -24,32 +25,6 @@ namespace Epsiloner.Attributes
         /// </summary>
         public Type Type { get; }
 
-
-        /// <summary>
-        /// Checks all existing assemblies and runs static costructors for found assemblies.
-        /// </summary>
-        public static void Initialize()
-        {
-            //To prevent multiple event handlers, first we remove existing handler, only then we add handler to always have only 1 active handler.
-            AppDomain.CurrentDomain.AssemblyLoad -= CurrentDomainOnAssemblyLoad;
-            AppDomain.CurrentDomain.AssemblyLoad += CurrentDomainOnAssemblyLoad;
-
-            //Proceed all loaded assemblies.
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (var assembly in assemblies)
-                ProceedAssembly(assembly);
-        }
-
-        private static void CurrentDomainOnAssemblyLoad(object sender, AssemblyLoadEventArgs args)
-        {
-            ProceedAssembly(args.LoadedAssembly);
-        }
-
-        private static void ProceedAssembly(Assembly assembly)
-        {
-            foreach (InitializeOnLoadAttribute attr in assembly.GetCustomAttributes(AttrType, false))
-                RuntimeHelpers.RunClassConstructor(attr.Type.TypeHandle); //Static constructor for same type will be executed only once.
-        }
     }
 }
 

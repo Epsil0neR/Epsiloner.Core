@@ -1,7 +1,10 @@
-﻿using System;
+﻿using Epsiloner.Attributes;
+using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace Epsiloner.Helpers
 {
@@ -57,5 +60,38 @@ namespace Epsiloner.Helpers
                 asm.DefinedTypes.ToList(); // This is hack line which loads all referenced assemblies.
             }
         }
+
+
+        #region InitializeOnLoadAttribute related
+        /// <summary>
+        /// Checks all existing assemblies for having <see cref="InitializeOnLoadAttribute"/> and runs static costructors for found types.
+        /// </summary>
+        public static Task InitializeTypesFromAttribute(this AppDomain appDomain)
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                //To prevent multiple event handlers, first we remove existing handler, only then we add handler to always have only 1 active handler.
+                appDomain.AssemblyLoad -= CurrentDomainOnAssemblyLoad;
+                appDomain.AssemblyLoad += CurrentDomainOnAssemblyLoad;
+
+                //Proceed all loaded assemblies.
+                var assemblies = appDomain.GetAssemblies();
+                foreach (var assembly in assemblies)
+                    ProceedAssembly(assembly);
+            });
+        }
+
+        private static void CurrentDomainOnAssemblyLoad(object sender, AssemblyLoadEventArgs args)
+        {
+            ProceedAssembly(args.LoadedAssembly);
+        }
+
+        private static void ProceedAssembly(Assembly assembly)
+        {
+            var attrType = typeof(InitializeOnLoadAttribute);
+            foreach (InitializeOnLoadAttribute attr in assembly.GetCustomAttributes(attrType, false))
+                RuntimeHelpers.RunClassConstructor(attr.Type.TypeHandle); //Static constructor for same type will be executed only once.
+        }
+        #endregion
     }
 }
