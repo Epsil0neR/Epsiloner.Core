@@ -1,4 +1,5 @@
-v1.0.3 - 
+v1.0.3 - 2018-08-20
 	Added InitializeOnLoadAttribute attribute that will run static constructors for types specified in attribute for loaded assemblies and assemblies that will be loaded later.
+	
 v1.0.2 - 2018-08-10
 	Added helpers for Enum and added GetFlags method.
