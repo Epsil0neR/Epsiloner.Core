@@ -5,7 +5,7 @@ namespace Epsiloner.Attributes
 {
     /// <summary>
     /// Specifies which types should execute static constructor when assembly is loaded.
-    /// Note: <see cref="AppDomianHelpers.InitializeTypesFromAttribute"/> method must be invoked outside to execute static constructors for all existing attributes and also handle new assemblies load.
+    /// Note: <see cref="AppDomainHelpers.InitializeTypesFromAttribute"/> method must be invoked outside to execute static constructors for all existing attributes and also handle new assemblies load.
     /// </summary>
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
     public class InitializeOnLoadAttribute : Attribute

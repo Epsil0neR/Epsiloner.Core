@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Epsiloner.Attributes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Epsiloner.Helpers
 {
@@ -11,7 +13,7 @@ namespace Epsiloner.Helpers
     public static class AssemblyHelpers
     {
         /// <summary>
-        /// Gets all derived types from specified <paramref name="baseType" /> in speicified <paramref name="assembly" />.
+        /// Gets all derived types from specified <paramref name="baseType" /> in specified <paramref name="assembly" />.
         /// </summary>
         /// <param name="assembly">Assembly where to search derived types</param>
         /// <param name="baseType">Base type</param>
@@ -39,6 +41,18 @@ namespace Epsiloner.Helpers
         public static IEnumerable<string> GetNamesOfAssembliesReferencedBy(this Assembly assembly)
         {
             return assembly.GetReferencedAssemblies().Select(assemblyName => assemblyName.FullName).ToList();
+        }
+
+        /// <summary>
+        /// Checks <paramref name="assembly"/> for having <see cref="InitializeOnLoadAttribute"/> and runs static constructors for found types.
+        /// If static constructor of type already executed, nothing happens.
+        /// </summary>
+        /// <param name="assembly"></param>
+        public static void InitializeTypesFromAttribute(this Assembly assembly)
+        {
+            var attrType = typeof(InitializeOnLoadAttribute);
+            foreach (InitializeOnLoadAttribute attr in assembly.GetCustomAttributes(attrType, false))
+                RuntimeHelpers.RunClassConstructor(attr.Type.TypeHandle); //Static constructor for same type will be executed only once.
         }
     }
 }

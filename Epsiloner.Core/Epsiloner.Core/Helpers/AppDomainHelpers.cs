@@ -3,7 +3,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Epsiloner.Helpers
@@ -11,7 +10,7 @@ namespace Epsiloner.Helpers
     /// <summary>
     /// Extension methods for <see cref="AppDomain"/>.
     /// </summary>
-    public static class AppDomianHelpers
+    public static class AppDomainHelpers
     {
         /// <summary>
         /// Loads all matching search pattern assemblies except assemblies.
@@ -40,7 +39,7 @@ namespace Epsiloner.Helpers
                 {
                     //Assembly of type System.Reflection.Emit.InternalAssemblyBuilder
                     //has property .Location which throws exception, but that type is internal,
-                    //so signle way is to use try..catch
+                    //so single way is to use try..catch
                     try
                     {
                         return x.Location == file;
@@ -64,33 +63,47 @@ namespace Epsiloner.Helpers
 
         #region InitializeOnLoadAttribute related
         /// <summary>
-        /// Checks all existing assemblies for having <see cref="InitializeOnLoadAttribute"/> and runs static costructors for found types.
+        /// Checks all existing assemblies for having <see cref="InitializeOnLoadAttribute"/> and runs static constructors for found types.
+        /// If static constructor of type already executed, nothing happens.
+        /// Also initializes all assemblies that will be loaded in future.
         /// </summary>
+        /// <param name="appDomain"></param>
         public static Task InitializeTypesFromAttribute(this AppDomain appDomain)
         {
             return Task.Factory.StartNew(() =>
             {
                 //To prevent multiple event handlers, first we remove existing handler, only then we add handler to always have only 1 active handler.
-                appDomain.AssemblyLoad -= CurrentDomainOnAssemblyLoad;
-                appDomain.AssemblyLoad += CurrentDomainOnAssemblyLoad;
+                appDomain.DisableInitializerForNewlyLoadedAssemblies();
+                appDomain.EnableInitializerForNewlyLoadedAssemblies();
 
                 //Proceed all loaded assemblies.
                 var assemblies = appDomain.GetAssemblies();
                 foreach (var assembly in assemblies)
-                    ProceedAssembly(assembly);
-            });
+                    assembly.InitializeTypesFromAttribute();
+            }, TaskCreationOptions.LongRunning);
+        }
+
+        /// <summary>
+        /// Disables check for having <see cref="InitializeOnLoadAttribute"/> and running static constructors for found types for newly loaded assemblies.
+        /// </summary>
+        /// <param name="appDomain"></param>
+        public static void DisableInitializerForNewlyLoadedAssemblies(this AppDomain appDomain)
+        {
+            appDomain.AssemblyLoad -= CurrentDomainOnAssemblyLoad;
+        }
+
+        /// <summary>
+        /// Enables check for having <see cref="InitializeOnLoadAttribute"/> and running static constructors for found types for newly loaded assemblies.
+        /// </summary>
+        /// <param name="appDomain"></param>
+        public static void EnableInitializerForNewlyLoadedAssemblies(this AppDomain appDomain)
+        {
+            appDomain.AssemblyLoad += CurrentDomainOnAssemblyLoad;
         }
 
         private static void CurrentDomainOnAssemblyLoad(object sender, AssemblyLoadEventArgs args)
         {
-            ProceedAssembly(args.LoadedAssembly);
-        }
-
-        private static void ProceedAssembly(Assembly assembly)
-        {
-            var attrType = typeof(InitializeOnLoadAttribute);
-            foreach (InitializeOnLoadAttribute attr in assembly.GetCustomAttributes(attrType, false))
-                RuntimeHelpers.RunClassConstructor(attr.Type.TypeHandle); //Static constructor for same type will be executed only once.
+            args.LoadedAssembly.InitializeTypesFromAttribute();
         }
         #endregion
     }
