@@ -14,14 +14,15 @@
     <AssemblyOriginatorKeyFile>Epsiloner libraries.pfx</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
     <RootNamespace>Epsiloner</RootNamespace>
-    <Version>1.0.5</Version>
-    <PackageReleaseNotes>Added explicitly .net45 and .net461
+    <Version>1.0.6</Version>
+    <PackageReleaseNotes>Added IoC Registry&lt;T&gt; class.
+Added explicitly .net45 and .net461
 Added InitializeTypesFromAttribute extension for Assembly, improved InitializeTypesFromAttribute for AppDomain.
 Fixing misspelling
 Added InitializeOnLoadAttribute attribute that will run static constructors for types specified in attribute for loaded assemblies and assemblies that will be loaded later.</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>1.0.5.0</AssemblyVersion>
-    <FileVersion>1.0.5.0</FileVersion>
+    <AssemblyVersion>1.0.6.0</AssemblyVersion>
+    <FileVersion>1.0.6.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
