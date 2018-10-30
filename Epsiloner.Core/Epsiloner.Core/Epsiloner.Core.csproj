@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net461;net45</TargetFrameworks>
     <Authors>Veniamin Lytkin @ Epsil0neR</Authors>
     <Copyright>Copyright © Epsil0neR 2018</Copyright>
     <Company>https://github.com/Epsil0neR/Epsiloner.Core</Company>
@@ -14,17 +14,18 @@
     <AssemblyOriginatorKeyFile>Epsiloner libraries.pfx</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
     <RootNamespace>Epsiloner</RootNamespace>
-    <Version>1.0.4</Version>
-    <PackageReleaseNotes>Added InitializeTypesFromAttribute extension for Assembly, improved InitializeTypesFromAttribute for AppDomain.
+    <Version>1.0.5</Version>
+    <PackageReleaseNotes>Added explicitly .net45 and .net461
+Added InitializeTypesFromAttribute extension for Assembly, improved InitializeTypesFromAttribute for AppDomain.
 Fixing misspelling
 Added InitializeOnLoadAttribute attribute that will run static constructors for types specified in attribute for loaded assemblies and assemblies that will be loaded later.</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>1.0.4.0</AssemblyVersion>
-    <FileVersion>1.0.4.0</FileVersion>
+    <AssemblyVersion>1.0.5.0</AssemblyVersion>
+    <FileVersion>1.0.5.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\netstandard2.0\Epsiloner.Core.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\$(TargetFramework)\Epsiloner.Core.xml</DocumentationFile>
   </PropertyGroup>
 
 </Project>
