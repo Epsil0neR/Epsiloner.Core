@@ -15,6 +15,7 @@
     <RootNamespace>Epsiloner</RootNamespace>
     <Version>1.0.5</Version>
     <PackageReleaseNotes>Added support for .NET v4.5 - v4.6.1.
+      Added IoC Registry&lt;T&gt; class.
 Added InitializeTypesFromAttribute extension for Assembly, improved InitializeTypesFromAttribute for AppDomain.
 Fixing misspelling
 Added InitializeOnLoadAttribute attribute that will run static constructors for types specified in attribute for loaded assemblies and assemblies that will be loaded later.
