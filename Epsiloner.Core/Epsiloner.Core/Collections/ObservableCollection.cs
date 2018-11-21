@@ -264,12 +264,12 @@ namespace Epsiloner.Collections
 
         #region Private methods
 
-        private void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
         {
             OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
         }
 
-        private void RunAllHandlersForItem(bool inserted, T item, int index)
+        protected virtual void RunAllHandlersForItem(bool inserted, T item, int index)
         {
             foreach (var handler in _handlers.ToArray())
             {
@@ -277,7 +277,7 @@ namespace Epsiloner.Collections
             }
         }
 
-        private void RunHandlerForItem(ItemHandlerDelegate<T> handler, bool inserted, T item, int index)
+        protected virtual void RunHandlerForItem(ItemHandlerDelegate<T> handler, bool inserted, T item, int index)
         {
             handler?.Invoke(inserted, item, index);
         }
