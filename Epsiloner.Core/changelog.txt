@@ -1,3 +1,7 @@
+v1.0.10 - 2019-02-12
+	Added EventCooldown classes.
+	Added DisposableObject.
+
 v1.0.3 - 2018-08-20
 	Added InitializeOnLoadAttribute attribute that will run static constructors for types specified in attribute for loaded assemblies and assemblies that will be loaded later.
 	
