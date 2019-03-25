@@ -105,7 +105,7 @@ namespace Epsiloner.Cooldowns
             {
                 try
                 {
-                    _timer.Stop();
+                    _timer?.Stop();
                 }
                 catch (ObjectDisposedException)
                 {
@@ -119,9 +119,9 @@ namespace Epsiloner.Cooldowns
         {
             try
             {
-                _timer.Stop();
+                _timer?.Stop();
                 if (!_timerIsDisposed)
-                    _timer.Start();
+                    _timer?.Start();
             }
             catch (ObjectDisposedException)
             {
@@ -170,6 +170,7 @@ namespace Epsiloner.Cooldowns
                     return;
 
                 _timer.Close();
+                _timer.Elapsed -= OnElapsed;
                 _timer.Disposed -= TimerDisposed;
                 _timer = null;
             }
