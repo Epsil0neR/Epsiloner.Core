@@ -22,6 +22,7 @@ namespace Epsiloner.Collections
             _observableCollectionWrap = list;
         }
 
+        /// <inheritdoc />
         public new event NotifyCollectionChangedEventHandler CollectionChanged
         {
             add { base.CollectionChanged += value; }
