@@ -4,6 +4,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace Epsiloner.Collections
 {
@@ -142,6 +143,40 @@ namespace Epsiloner.Collections
                 throw new ArgumentNullException(nameof(items));
 
             RemoveRangeItems(items);
+        }
+
+        /// <summary>
+        /// Thread safe operation to get copy list.
+        /// </summary>
+        /// <param name="maxTries">Maximum tries to create a copy of collection. 0 - infinity.</param>
+        /// <returns></returns>
+        public IList<T> ToListSafe(int maxTries = 10)
+        {
+            if (maxTries <= 0) 
+                throw new ArgumentOutOfRangeException(nameof(maxTries));
+
+            List<T> rv = null;
+            var tryIndex = 0;
+            do
+            {
+                try
+                {
+                    tryIndex++;
+                    var copy = this.ToList();
+                    rv = copy;
+                }
+                catch (Exception e)
+                {
+                    // Throw exception only if tried maximum allowed times and still no result.
+                    if (maxTries > 0 && tryIndex >= maxTries)
+                        throw e;
+
+                    // Suggestion from Nerijus to wait 1ms.
+                    Thread.Sleep(1);
+                }
+            } while (rv == null);
+
+            return rv;
         }
         #endregion
 
