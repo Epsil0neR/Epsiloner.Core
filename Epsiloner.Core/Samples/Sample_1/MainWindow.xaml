@@ -6,7 +6,12 @@
         xmlns:local="clr-namespace:Sample_1"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        
-    </Grid>
+    <StackPanel Orientation="Vertical">
+        <Button 
+            Content="Accumulate"
+            Click="btnAccumulate_OnClick"/>
+        <Button 
+            Content="Now"
+            Click="btnNow_OnClick"/>
+    </StackPanel>
 </Window>
