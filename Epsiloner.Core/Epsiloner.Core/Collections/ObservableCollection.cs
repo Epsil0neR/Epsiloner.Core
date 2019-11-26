@@ -134,6 +134,36 @@ namespace Epsiloner.Collections
             ReplaceRangeItems(items);
         }
 
+        /// <summary>
+        /// Replaces all items in the <see cref="ObservableCollection{T}"/> with specified objects of the specified collection and raises events for all changes.
+        /// Recommended for usage with UI and other parts that does not handle correctly when <see cref="NotifyCollectionChangedEventArgs.Action"/> is set to <see cref="NotifyCollectionChangedAction.Reset"/>.
+        /// </summary>
+        /// <param name="items"></param>
+        public void ReplaceRangeSmart(IEnumerable<T> items)
+        {
+            var list = items.ToList() ?? throw new ArgumentNullException(nameof(items));
+            var removed = this.Except(list).ToList();
+            var added = list.Except(this).ToList();
+
+            foreach (var itm in removed)
+                Remove(itm);
+
+            var skippedItems = 0;
+            var c = list.Count;
+            for (var i = 0; i < c; i++)
+            {
+                var itm = list.ElementAt(i);
+                var ind = IndexOf(itm);
+                if (ind >= 0)
+                    Move(ind, i - skippedItems);
+                else
+                    skippedItems++;
+            }
+
+            foreach (var itm in added)
+                InsertItem(list.IndexOf(itm), itm);
+        }
+
         /// <summary>Removes a range of elements from the <see cref="ObservableCollection{T}" />.</summary>
         /// <param name="items">Collection of specified objects to remove.</param>
         /// <exception cref="T:System.ArgumentNullException"><paramref name="items" /> is <see langword="null" />.</exception>
@@ -152,7 +182,7 @@ namespace Epsiloner.Collections
         /// <returns></returns>
         public IList<T> ToListSafe(int maxTries = 10)
         {
-            if (maxTries <= 0) 
+            if (maxTries <= 0)
                 throw new ArgumentOutOfRangeException(nameof(maxTries));
 
             List<T> rv = null;
@@ -193,7 +223,7 @@ namespace Epsiloner.Collections
                 Items.Insert(i + startIndex, itms[i]);
             }
 
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, itms, startIndex));
             RaisePropertyChanged(nameof(Count));
             RaisePropertyChanged("Item[]");
 
