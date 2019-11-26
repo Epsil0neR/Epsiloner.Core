@@ -141,7 +141,7 @@ namespace Epsiloner.Collections
         /// <param name="items"></param>
         public void ReplaceRangeSmart(IEnumerable<T> items)
         {
-            var list = items.ToList() ?? throw new ArgumentNullException(nameof(items));
+            var list = items?.ToList() ?? throw new ArgumentNullException(nameof(items));
             var removed = this.Except(list).ToList();
             var added = list.Except(this).ToList();
 
@@ -154,9 +154,9 @@ namespace Epsiloner.Collections
             {
                 var itm = list.ElementAt(i);
                 var ind = IndexOf(itm);
-                if (ind >= 0)
+                if (ind >= 0 && ind != i - skippedItems)
                     Move(ind, i - skippedItems);
-                else
+                else if (ind < 0) // Item not found in source.
                     skippedItems++;
             }
 

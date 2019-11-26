@@ -13,8 +13,13 @@
     <AssemblyOriginatorKeyFile>Epsiloner libraries.pfx</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
     <RootNamespace>Epsiloner</RootNamespace>
-    <Version>1.0.12</Version>
+    <Version>1.0.14</Version>
     <PackageReleaseNotes>
+      v1.0.14:
+      - ObservableCollection`T - improved method ReplaceRangeSmart.
+      v1.0.13:
+      - ObservableCollection`T - added method ReplaceRangeSmart that raises events for all types of changes.
+      - ObservableCollection`T - improved AddRange method to raise more detailed event.
       v1.0.12:
       - Added ObservableCollection`T.ToListSafe method that tries safely get items.
     </PackageReleaseNotes>
