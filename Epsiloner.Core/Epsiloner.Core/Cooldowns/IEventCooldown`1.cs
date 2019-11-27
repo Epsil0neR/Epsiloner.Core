@@ -15,6 +15,12 @@ namespace Epsiloner.Cooldowns
         void Now(T value);
 
         /// <summary>
+        /// Executes event with no cooldown asynchronously.
+        /// </summary>
+        /// <returns></returns>
+        void NowAsync(T value);
+
+        /// <summary>
         /// Puts event in cooldown. 
         /// In case no more events comes then OnElapsed will be called.
         /// </summary>

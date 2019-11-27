@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Epsiloner.Cooldowns
 {
@@ -24,12 +25,17 @@ namespace Epsiloner.Cooldowns
         /// <param name="action">action to invoke after <paramref name="accumulateAfter"/></param>
         /// <param name="accumulateAfter">invoke <paramref name="action"/> after <paramref name="accumulateAfter"/> of silence</param>
         /// <param name="cleanAfterAccumulateInvoke">flag to clean list of items after <paramref name="action"/>. in case of true, values will be always accumulating in list, even previous ones.</param>
-        public EventCooldownListOf(Action<List<T>> action, TimeSpan accumulateAfter, bool cleanAfterAccumulateInvoke = true)
+        /// <param name="maxAccumulateAfter">(Optional) Maximum timespan after first event execute action.</param>
+        public EventCooldownListOf(
+            Action<List<T>> action, 
+            TimeSpan accumulateAfter, 
+            bool cleanAfterAccumulateInvoke = true, 
+            TimeSpan? maxAccumulateAfter = null)
         {
             _action = action;
             _cleanAfterAccumulateInvoke = cleanAfterAccumulateInvoke;
             _items = new List<T>();
-            _eventCooldown = new EventCooldown(accumulateAfter, Accumulated);
+            _eventCooldown = new EventCooldown(accumulateAfter, Accumulated, maxAccumulateAfter);
         }
 
         /// <inheritdoc />
@@ -83,6 +89,12 @@ namespace Epsiloner.Cooldowns
         {
             Add(value);
             Now();
+        }
+
+        /// <inheritdoc />
+        public void NowAsync(T value)
+        {
+            Task.Factory.StartNew(() => Now(value));
         }
 
         /// <inheritdoc />
