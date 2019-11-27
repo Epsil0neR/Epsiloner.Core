@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Timers;
 
 namespace Epsiloner.Cooldowns
@@ -11,11 +12,15 @@ namespace Epsiloner.Cooldowns
     {
         private readonly TimeSpan _accumulateAfter;
         private readonly Action<T> _action;
+        private readonly TimeSpan? _maxAccumulateAfter;
         private readonly object _padlock = new object();
         private bool _timerIsDisposed;
+        private bool _timerMaxElapsing;
 
         private T _value;
         private Timer _timer;
+        private Timer _timerMax;
+
         private bool _keepLastStackTrace;
         private string _lastStackTrace;
 
@@ -25,11 +30,14 @@ namespace Epsiloner.Cooldowns
         /// </summary>
         /// <param name="accumulateAfter">Timespan after last event execute action.</param>
         /// <param name="action">Action to invoke.</param>
-        public EventCooldown(TimeSpan accumulateAfter, Action<T> action)
+        /// <param name="maxAccumulateAfter">(Optional) Maximum timespan after first event execute action.</param>
+        public EventCooldown(TimeSpan accumulateAfter, Action<T> action, TimeSpan? maxAccumulateAfter = null)
         {
             _accumulateAfter = accumulateAfter;
             _action = action;
+            _maxAccumulateAfter = maxAccumulateAfter;
             _timer = NewTimer();
+            _timerMax = NewMaxTimer();
             IsNow = false;
         }
 
@@ -85,15 +93,23 @@ namespace Epsiloner.Cooldowns
         }
 
         /// <inheritdoc />
+        public void NowAsync(T value)
+        {
+            Task.Factory.StartNew(() => Now(value));
+        }
+
+        /// <inheritdoc />
         public void Cancel()
         {
             try
             {
                 _timer?.Stop();
+                _timerMax?.Stop();
             }
             catch (ObjectDisposedException)
             {
                 _timer = null;
+                _timerMax = null;
                 // ignore, we know this
             }
         }
@@ -117,6 +133,7 @@ namespace Epsiloner.Cooldowns
                 }
 #endif
                 StopStart(value);
+                StartMax();
             }
         }
 
@@ -144,6 +161,28 @@ namespace Epsiloner.Cooldowns
             }
         }
 
+        public void StartMax()
+        {
+            if (_timerMax == null)
+                return;
+
+            try
+            {
+                if (_timerIsDisposed)
+                    return;
+
+                if (_timerMaxElapsing)
+                    return;
+
+                _timerMaxElapsing = true;
+                _timerMax?.Start();
+            }
+            catch (ObjectDisposedException)
+            {
+                _timerMax = null;
+                // ignore, we know this
+            }
+        }
 
         private Timer NewTimer()
         {
@@ -156,6 +195,27 @@ namespace Epsiloner.Cooldowns
             timer.Disposed += TimerDisposed;
 
             return timer;
+        }
+
+        private Timer NewMaxTimer()
+        {
+            if (!_maxAccumulateAfter.HasValue)
+                return null;
+
+            var timer = new Timer(_maxAccumulateAfter.Value.TotalMilliseconds)
+            {
+                AutoReset = false
+            };
+            timer.Elapsed += OnMaxElapsed;
+            timer.Disposed += TimerDisposed;
+
+            return timer;
+        }
+
+        private void OnMaxElapsed(object sender, ElapsedEventArgs e)
+        {
+            Cancel();
+            InvokeAction();
         }
 
         private void TimerDisposed(object sender, EventArgs e)
@@ -173,7 +233,9 @@ namespace Epsiloner.Cooldowns
             if (IsDisposing || _timerIsDisposed)
                 return;
 
-            //lock (_padlock)
+            _timerMaxElapsing = false;
+            _timerMax?.Stop();
+
             _action.Invoke(_value);
         }
 
@@ -188,6 +250,14 @@ namespace Epsiloner.Cooldowns
                 _timer.Elapsed -= OnElapsed;
                 _timer.Disposed -= TimerDisposed;
                 _timer = null;
+
+                if (_timerMax != null)
+                {
+                    _timerMax.Close();
+                    _timerMax.Elapsed -= OnMaxElapsed;
+                    _timerMax.Disposed -= TimerDisposed;
+                    _timerMax = null;
+                }
             }
         }
     }
