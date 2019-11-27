@@ -13,8 +13,10 @@
     <AssemblyOriginatorKeyFile>Epsiloner libraries.pfx</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
     <RootNamespace>Epsiloner</RootNamespace>
-    <Version>1.0.14</Version>
+    <Version>1.0.15</Version>
     <PackageReleaseNotes>
+      v1.0.15:
+      - EventCooldown - Added MaxAccumulationTimeSpan to constructor that guaranties that event will be invoked since first accumulation.
       v1.0.14:
       - ObservableCollection`T - improved method ReplaceRangeSmart.
       v1.0.13:
