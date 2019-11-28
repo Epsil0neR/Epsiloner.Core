@@ -30,6 +30,15 @@ namespace Epsiloner.Cooldowns
         /// </summary>
         /// <param name="accumulateAfter">Timespan after last event execute action.</param>
         /// <param name="action">Action to invoke.</param>
+        public EventCooldown(TimeSpan accumulateAfter, Action<T> action)
+        : this(accumulateAfter, action, null)
+        { }
+
+        /// <summary>
+        /// Creates event cooldown.  
+        /// </summary>
+        /// <param name="accumulateAfter">Timespan after last event execute action.</param>
+        /// <param name="action">Action to invoke.</param>
         /// <param name="maxAccumulateAfter">(Optional) Maximum timespan after first event execute action.</param>
         public EventCooldown(TimeSpan accumulateAfter, Action<T> action, TimeSpan? maxAccumulateAfter = null)
         {

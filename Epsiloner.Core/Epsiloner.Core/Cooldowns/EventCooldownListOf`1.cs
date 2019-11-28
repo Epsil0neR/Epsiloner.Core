@@ -19,6 +19,20 @@ namespace Epsiloner.Cooldowns
         private readonly EventCooldown _eventCooldown;
         private bool _keepLastStackTrace;
 
+
+        /// <summary>
+        /// Accumulates event values into list and after <paramref name="accumulateAfter"/> period invokes <paramref name="action"/>.
+        /// </summary>
+        /// <param name="action">action to invoke after <paramref name="accumulateAfter"/></param>
+        /// <param name="accumulateAfter">invoke <paramref name="action"/> after <paramref name="accumulateAfter"/> of silence</param>
+        /// <param name="cleanAfterAccumulateInvoke">flag to clean list of items after <paramref name="action"/>. in case of true, values will be always accumulating in list, even previous ones.</param>
+        public EventCooldownListOf(
+            Action<List<T>> action,
+            TimeSpan accumulateAfter,
+            bool cleanAfterAccumulateInvoke = true)
+        : this(action, accumulateAfter, cleanAfterAccumulateInvoke, null)
+        { }
+
         /// <summary>
         /// Accumulates event values into list and after <paramref name="accumulateAfter"/> period invokes <paramref name="action"/>.
         /// </summary>
@@ -27,10 +41,10 @@ namespace Epsiloner.Cooldowns
         /// <param name="cleanAfterAccumulateInvoke">flag to clean list of items after <paramref name="action"/>. in case of true, values will be always accumulating in list, even previous ones.</param>
         /// <param name="maxAccumulateAfter">(Optional) Maximum timespan after first event execute action.</param>
         public EventCooldownListOf(
-            Action<List<T>> action, 
-            TimeSpan accumulateAfter, 
-            bool cleanAfterAccumulateInvoke = true, 
-            TimeSpan? maxAccumulateAfter = null)
+        Action<List<T>> action,
+        TimeSpan accumulateAfter,
+        bool cleanAfterAccumulateInvoke = true,
+        TimeSpan? maxAccumulateAfter = null)
         {
             _action = action;
             _cleanAfterAccumulateInvoke = cleanAfterAccumulateInvoke;
