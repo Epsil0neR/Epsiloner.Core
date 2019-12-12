@@ -17,6 +17,7 @@ namespace Epsiloner.Collections
         : System.Collections.ObjectModel.ObservableCollection<T>
     {
         private readonly List<ItemHandlerDelegate<T>> _handlers = new List<ItemHandlerDelegate<T>>();
+        private readonly object _smartReplaceLock = new object();
 
         #region Constructors
         public ObservableCollection()
@@ -141,27 +142,30 @@ namespace Epsiloner.Collections
         /// <param name="items"></param>
         public void ReplaceRangeSmart(IEnumerable<T> items)
         {
-            var list = items?.ToList() ?? throw new ArgumentNullException(nameof(items));
-            var removed = this.Except(list).ToList();
-            var added = list.Except(this).ToList();
-
-            foreach (var itm in removed)
-                Remove(itm);
-
-            var skippedItems = 0;
-            var c = list.Count;
-            for (var i = 0; i < c; i++)
+            lock (_smartReplaceLock)
             {
-                var itm = list.ElementAt(i);
-                var ind = IndexOf(itm);
-                if (ind >= 0 && ind != i - skippedItems)
-                    Move(ind, i - skippedItems);
-                else if (ind < 0) // Item not found in source.
-                    skippedItems++;
-            }
+                var list = items?.ToList() ?? throw new ArgumentNullException(nameof(items));
+                var removed = this.Except(list).ToList();
+                var added = list.Except(this).ToList();
 
-            foreach (var itm in added)
-                InsertItem(list.IndexOf(itm), itm);
+                foreach (var itm in removed)
+                    while (Remove(itm)) { } // Perform removal in while as there same instance can be added multiple times.
+
+                var skippedItems = 0;
+                var c = list.Count;
+                for (var i = 0; i < c; i++)
+                {
+                    var itm = list.ElementAt(i);
+                    var ind = IndexOf(itm);
+                    if (ind >= 0 && ind != i - skippedItems)
+                        Move(ind, i - skippedItems);
+                    else if (ind < 0) // Item not found in source.
+                        skippedItems++;
+                }
+
+                foreach (var itm in added)
+                    InsertItem(list.IndexOf(itm), itm);
+            }
         }
 
         /// <summary>Removes a range of elements from the <see cref="ObservableCollection{T}" />.</summary>
