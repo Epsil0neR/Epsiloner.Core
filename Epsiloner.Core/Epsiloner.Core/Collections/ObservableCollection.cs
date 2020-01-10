@@ -157,8 +157,9 @@ namespace Epsiloner.Collections
                 {
                     var itm = list.ElementAt(i);
                     var ind = IndexOf(itm);
-                    if (ind >= 0 && ind != i - skippedItems)
-                        Move(ind, i - skippedItems);
+                    var indNew = i - skippedItems;
+                    if (ind >= 0 && ind != indNew)
+                        Move(ind, indNew);
                     else if (ind < 0) // Item not found in source.
                         skippedItems++;
                 }
@@ -219,6 +220,7 @@ namespace Epsiloner.Collections
 
         protected virtual void AddRangeItems(IEnumerable<T> items)
         {
+            CheckReentrancy();
             var itms = items.ToArray();
 
             var startIndex = Items.Count;
@@ -240,6 +242,7 @@ namespace Epsiloner.Collections
 
         protected virtual void ReplaceRangeItems(IEnumerable<T> items)
         {
+            CheckReentrancy();
             var itms = items.ToArray();
             var old = Items.ToArray();
 
@@ -269,6 +272,7 @@ namespace Epsiloner.Collections
 
         protected virtual void RemoveRangeItems(IEnumerable<T> items)
         {
+            CheckReentrancy();
             var itms = items.ToArray();
 
             var removed = itms.Where(x => Items.Remove(x)).ToList();
