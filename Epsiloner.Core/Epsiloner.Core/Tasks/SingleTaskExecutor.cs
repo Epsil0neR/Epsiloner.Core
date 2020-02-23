@@ -22,7 +22,6 @@ namespace Epsiloner.Tasks
     /// <summary>
     /// TODO: Add documentation.
     /// </summary>
-    [Obsolete("Work in progress. Not ready for final use.")]
     public class SingleTaskExecutor<TResult> : IDisposable
     {
         private readonly Func<CancellationToken> _tokenResolver;
@@ -101,13 +100,8 @@ namespace Epsiloner.Tasks
     {
         public Tester()
         {
-#pragma warning disable 618
             var executor = new SingleTaskExecutor<int>();
-#pragma warning restore 618
-
             executor.Next(token => MyDoWorkAsync("my param", token));
-
-            
         }
 
         private async Task<int> MyDoWorkAsync(string param, CancellationToken token)
