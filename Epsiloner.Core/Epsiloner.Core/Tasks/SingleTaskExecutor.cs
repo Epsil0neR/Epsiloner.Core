@@ -20,22 +20,22 @@ namespace Epsiloner.Tasks
      */
 
     /// <summary>
-    /// 
+    /// TODO: Add documentation.
     /// </summary>
     [Obsolete("Work in progress. Not ready for final use.")]
     public class SingleTaskExecutor<TResult> : IDisposable
     {
         private readonly Func<CancellationToken> _tokenResolver;
         private CancellationTokenSource _tokenSource;
-        private TaskCompletionSource<TResult> _completionSource = new TaskCompletionSource<TResult>();
+        private TaskCompletionSource<TResult> _taskSource = new TaskCompletionSource<TResult>();
 
-        public Task<TResult> Task => _completionSource.Task;
+        public Task<TResult> Task => _taskSource.Task;
 
         /// <summary>
         /// TODO: Add documentation.
         /// </summary>
-        /// <param name="tokenResolver">Method to resolve token for each function executed via <see cref="Next"/>.</param>
-        public SingleTaskExecutor(Func<CancellationToken> tokenResolver)
+        /// <param name="tokenResolver">(Optional) Method to resolve token for each function executed via <see cref="Next"/>. If not specified will be used <see cref="CancellationToken.None"/>.</param>
+        public SingleTaskExecutor(Func<CancellationToken> tokenResolver = null)
         {
             _tokenResolver = tokenResolver ?? (() => CancellationToken.None);
         }
@@ -71,28 +71,51 @@ namespace Epsiloner.Tasks
                 throw new ArgumentException("Function must return instance of Task.", nameof(func));
 
             //Check if new TaskCompletionSource should be created.
-            if (_completionSource.Task.IsCanceled ||
-                _completionSource.Task.IsCompleted ||
-                _completionSource.Task.IsFaulted)
-                _completionSource = new TaskCompletionSource<TResult>();
+            if (_taskSource.Task.IsCanceled ||
+                _taskSource.Task.IsCompleted ||
+                _taskSource.Task.IsFaulted)
+                _taskSource = new TaskCompletionSource<TResult>();
 
             task.ContinueWith(x =>
             {
                 if (ReferenceEquals(linkedSource, _tokenSource))
-                    _completionSource.SetResult(x.Result);
-            }, token, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Current);
+                    _taskSource.TrySetResult(x.Result);
+            }, token, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Current).ConfigureAwait(false);
             task.ContinueWith(x =>
             {
                 if (ReferenceEquals(linkedSource, _tokenSource))
-                    _completionSource.SetException(x.Exception);
-            }, token, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Current);
+                    _taskSource.TrySetException(x.Exception ?? new Exception());
+            }, token, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Current).ConfigureAwait(false);
             task.ContinueWith(x =>
             {
                 if (ReferenceEquals(linkedSource, _tokenSource))
-                    _completionSource.SetCanceled();
-            }, token, TaskContinuationOptions.OnlyOnCanceled, TaskScheduler.Current);
+                    _taskSource.TrySetCanceled();
+            }, token, TaskContinuationOptions.OnlyOnCanceled, TaskScheduler.Current).ConfigureAwait(false);
 
             return task;
         }
+    }
+
+    //TODO: Remove this tester.
+    internal class Tester
+    {
+        public Tester()
+        {
+#pragma warning disable 618
+            var executor = new SingleTaskExecutor<int>();
+#pragma warning restore 618
+
+            executor.Next(token => MyDoWorkAsync("my param", token));
+
+            
+        }
+
+        private async Task<int> MyDoWorkAsync(string param, CancellationToken token)
+        {
+            await Task.Delay(1000, token);
+            return 100500;
+
+        }
+
     }
 }
