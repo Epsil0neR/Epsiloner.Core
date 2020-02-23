@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,12 +23,13 @@ namespace Epsiloner.Tasks
     /// 
     /// </summary>
     [Obsolete("Work in progress. Not ready for final use.")]
-    public class SingleTask : IDisposable
+    public class SingleTask<TResult> : IDisposable
     {
         private readonly Func<CancellationToken> _tokenResolver;
         private CancellationTokenSource _tokenSource;
+        private TaskCompletionSource<TResult> _completionSource = new TaskCompletionSource<TResult>();
 
-        public Task Task { get; private set; }
+        public Task<TResult> Task => _completionSource.Task;
 
         /// <summary>
         /// 
@@ -46,7 +45,12 @@ namespace Epsiloner.Tasks
             _tokenSource?.Dispose();
         }
 
-        public Task Next(Func<CancellationToken, Task> func)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="func"></param>
+        /// <returns>Returns <see cref="System.Threading.Tasks.Task"/> retrieved from <paramref name="func"/>.</returns>
+        public Task Next(Func<CancellationToken, Task<TResult>> func)
         {
             if (_tokenSource != null)
             {
@@ -59,9 +63,30 @@ namespace Epsiloner.Tasks
             _tokenSource = linkedSource;
 
             var task = func(token);
-            Task = task;
+
+            //Check if new TaskCompletionSource should be created.
+            if (_completionSource.Task.IsCanceled ||
+                _completionSource.Task.IsCompleted ||
+                _completionSource.Task.IsFaulted)
+                _completionSource = new TaskCompletionSource<TResult>();
+
+            task.ContinueWith(x =>
+            {
+                if (ReferenceEquals(linkedSource, _tokenSource))
+                    _completionSource.SetResult(x.Result);
+            }, token, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Current);
+            task.ContinueWith(x =>
+            {
+                if (ReferenceEquals(linkedSource, _tokenSource))
+                    _completionSource.SetException(x.Exception);
+            }, token, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Current);
+            task.ContinueWith(x =>
+            {
+                if (ReferenceEquals(linkedSource, _tokenSource))
+                    _completionSource.SetCanceled();
+            }, token, TaskContinuationOptions.OnlyOnCanceled, TaskScheduler.Current);
+
             return task;
         }
-
     }
 }
