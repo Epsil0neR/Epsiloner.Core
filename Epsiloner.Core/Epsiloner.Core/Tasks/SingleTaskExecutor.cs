@@ -23,7 +23,7 @@ namespace Epsiloner.Tasks
     /// 
     /// </summary>
     [Obsolete("Work in progress. Not ready for final use.")]
-    public class SingleTask<TResult> : IDisposable
+    public class SingleTaskExecutor<TResult> : IDisposable
     {
         private readonly Func<CancellationToken> _tokenResolver;
         private CancellationTokenSource _tokenSource;
@@ -32,14 +32,15 @@ namespace Epsiloner.Tasks
         public Task<TResult> Task => _completionSource.Task;
 
         /// <summary>
-        /// 
+        /// TODO: Add documentation.
         /// </summary>
         /// <param name="tokenResolver">Method to resolve token for each function executed via <see cref="Next"/>.</param>
-        public SingleTask(Func<CancellationToken> tokenResolver)
+        public SingleTaskExecutor(Func<CancellationToken> tokenResolver)
         {
             _tokenResolver = tokenResolver ?? (() => CancellationToken.None);
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
             _tokenSource?.Dispose();
@@ -52,6 +53,9 @@ namespace Epsiloner.Tasks
         /// <returns>Returns <see cref="System.Threading.Tasks.Task"/> retrieved from <paramref name="func"/>.</returns>
         public Task Next(Func<CancellationToken, Task<TResult>> func)
         {
+            if (func == null)
+                throw new ArgumentNullException(nameof(func));
+
             if (_tokenSource != null)
             {
                 _tokenSource.Cancel();
@@ -63,6 +67,8 @@ namespace Epsiloner.Tasks
             _tokenSource = linkedSource;
 
             var task = func(token);
+            if (task == null)
+                throw new ArgumentException("Function must return instance of Task.", nameof(func));
 
             //Check if new TaskCompletionSource should be created.
             if (_completionSource.Task.IsCanceled ||
