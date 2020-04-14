@@ -17,7 +17,6 @@ namespace Epsiloner.Cooldowns
         private readonly Action<List<T>> _action;
         private readonly bool _cleanAfterAccumulateInvoke;
         private readonly EventCooldown _eventCooldown;
-        private bool _keepLastStackTrace;
 
 
         /// <summary>
@@ -51,6 +50,9 @@ namespace Epsiloner.Cooldowns
             _items = new List<T>();
             _eventCooldown = new EventCooldown(accumulateAfter, Accumulated, maxAccumulateAfter);
         }
+
+        /// <inheritdoc />
+        public string LastStackTrace => _eventCooldown.LastStackTrace;
 
         /// <inheritdoc />
         public bool IsNow => _eventCooldown.IsNow;
@@ -121,14 +123,8 @@ namespace Epsiloner.Cooldowns
         /// <inheritdoc />
         public bool KeepLastStackTrace
         {
-            get { return _keepLastStackTrace; }
-            set
-            {
-#if !DEBUG
-                return;
-#endif
-                _keepLastStackTrace = value;
-            }
+            get => _eventCooldown.KeepLastStackTrace;
+            set => _eventCooldown.KeepLastStackTrace = value;
         }
 
         /// <inheritdoc />

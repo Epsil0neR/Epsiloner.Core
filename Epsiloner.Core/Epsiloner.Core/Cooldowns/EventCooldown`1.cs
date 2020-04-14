@@ -21,10 +21,6 @@ namespace Epsiloner.Cooldowns
         private Timer _timer;
         private Timer _timerMax;
 
-        private bool _keepLastStackTrace;
-        private string _lastStackTrace;
-
-
         /// <summary>
         /// Creates event cooldown.  
         /// </summary>
@@ -51,20 +47,13 @@ namespace Epsiloner.Cooldowns
         }
 
         /// <inheritdoc />
+        public string LastStackTrace { get; private set; }
+
+        /// <inheritdoc />
         public bool IsNow { get; private set; }
 
         /// <inheritdoc />
-        public bool KeepLastStackTrace
-        {
-            get { return _keepLastStackTrace; }
-            set
-            {
-#if !DEBUG
-                return;
-#endif
-                _keepLastStackTrace = value;
-            }
-        }
+        public bool KeepLastStackTrace { get; set; }
 
         /// <inheritdoc />
         public void Now()
@@ -135,12 +124,9 @@ namespace Epsiloner.Cooldowns
                 if (_timer == null)
                     return;
 
-#if DEBUG
-                if (_keepLastStackTrace)
-                {
-                    _lastStackTrace = Environment.StackTrace;
-                }
-#endif
+                if (KeepLastStackTrace) 
+                    LastStackTrace = Environment.StackTrace;
+
                 StopStart(value);
                 StartMax();
             }

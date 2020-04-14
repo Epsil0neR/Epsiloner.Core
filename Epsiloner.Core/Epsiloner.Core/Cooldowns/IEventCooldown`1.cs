@@ -33,6 +33,11 @@ namespace Epsiloner.Cooldowns
         bool KeepLastStackTrace { get; set; }
 
         /// <summary>
+        /// Provides stack trace of last <see cref="Accumulate"/> and <see cref="Now()"/> and <see cref="Now(T)"/>.
+        /// </summary>
+        string LastStackTrace { get; }
+
+        /// <summary>
         /// Was last cooldown called by now?
         /// </summary>
         bool IsNow { get; }

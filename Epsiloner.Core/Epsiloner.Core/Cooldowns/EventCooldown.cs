@@ -20,9 +20,6 @@ namespace Epsiloner.Cooldowns
         private Timer _timer;
         private Timer _timerMax;
 
-        private bool _keepLastStackTrace;
-        private string _lastStackTrace;
-
         /// <summary>
         /// Creates event cooldown.  
         /// </summary>
@@ -49,20 +46,16 @@ namespace Epsiloner.Cooldowns
         }
 
         /// <summary>
-        /// For debugging purposes keeps last stack trace of execution. 
-        /// Effective only in DEBUG release mode. 
+        /// Provides stack trace of last <see cref="Accumulate"/> and <see cref="Now"/>.
         /// </summary>
-        public bool KeepLastStackTrace
-        {
-            get { return _keepLastStackTrace; }
-            set
-            {
-#if !DEBUG
-                return;
-#endif
-                _keepLastStackTrace = value;
-            }
-        }
+        public string LastStackTrace { get; private set; }
+
+        /// <summary>
+        /// For debugging purposes keeps last stack trace of execution. 
+        /// Effective only in DEBUG release mode.
+        /// Reduces performance when set to <see langword="true" />.
+        /// </summary>
+        public bool KeepLastStackTrace { get; set; }
 
         /// <summary>
         /// Was last cooldown called by now?
@@ -85,6 +78,7 @@ namespace Epsiloner.Cooldowns
 
                 _timer.Stop();
             }
+
             InvokeAction();
         }
 
@@ -94,6 +88,9 @@ namespace Epsiloner.Cooldowns
         /// <returns></returns>
         public Task NowAsync()
         {
+            if (KeepLastStackTrace)
+                LastStackTrace = Environment.StackTrace;
+
             return Task.Factory.StartNew(Now);
         }
 
@@ -112,10 +109,8 @@ namespace Epsiloner.Cooldowns
                 if (_timer == null)
                     return;
 
-#if DEBUG
-                if (_keepLastStackTrace)
-                    _lastStackTrace = Environment.StackTrace;
-#endif
+                if (KeepLastStackTrace)
+                    LastStackTrace = Environment.StackTrace;
 
                 StopStart();
                 StartMax();
