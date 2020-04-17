@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,10 +11,11 @@ namespace Epsiloner
     public class RunQueue : IDisposable
     {
         private readonly int _queueMax;
-        private static readonly object[] Params = new object[0];
 
         private readonly object _lock = new object();
         private readonly SemaphoreSlim _semaphore;
+        private readonly CancellationTokenSource _tokenSource;
+        private readonly CancellationToken _token;
 
         /// <summary>
         /// Indicates if object already disposed.
@@ -23,14 +23,9 @@ namespace Epsiloner
         public bool IsDisposed { get; private set; }
 
         /// <summary>
-        /// Weak reference to <see cref="Method"/> invocation target.
+        /// Action to invoke via <see cref="RunAsync"/>.
         /// </summary>
-        protected WeakReference WeakReference { get; set; }
-
-        /// <summary>
-        /// Method to invoke via <see cref="RunAsync"/>.
-        /// </summary>
-        protected MethodInfo Method { get; set; }
+        public Action Action { get; }
 
         /// <summary>
         /// Constructor for <see cref="RunQueue"/>.
@@ -39,17 +34,17 @@ namespace Epsiloner
         /// <param name="queueLimit">Queue limit.</param>
         public RunQueue(Action action, int queueLimit = 1)
         {
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
             if (queueLimit < 1)
                 throw new ArgumentException("Queue limit must be >= 1.");
 
             _queueMax = queueLimit + 1;
             _semaphore = new SemaphoreSlim(_queueMax, _queueMax);
+            _tokenSource = new CancellationTokenSource();
+            _token = _tokenSource.Token;
 
-            Method = action.Method;
-            WeakReference = new WeakReference(action.Target);
+            Action = action ?? throw new ArgumentNullException(nameof(action));
         }
+
 
         /// <inheritdoc />
         public void Dispose()
@@ -58,6 +53,7 @@ namespace Epsiloner
                 return;
 
             IsDisposed = true;
+            _tokenSource.Cancel();
             _semaphore.Dispose();
         }
 
@@ -69,52 +65,57 @@ namespace Epsiloner
             if (IsDisposed)
                 return;
 
-            lock (_lock)
-            {
-                if (_semaphore.CurrentCount == 0) // Currently running + full queue.
-                    return;
-
-                if (_semaphore.CurrentCount < _queueMax) // Currently running, queue is not full.
-                {
-                    _semaphore.Wait(); // Put 1 run into queue.
-                    return;
-                }
-
-                _semaphore.Wait(); // Start run without queue.
-            }
-
-            var runOnceMore = false;
             try
-            {
-                if (!WeakReference.IsAlive)
-                {
-                    Dispose();
-                    return;
-                }
-
-                Method.Invoke(WeakReference.Target, Params);
-            }
-            finally
             {
                 lock (_lock)
                 {
-                    _semaphore.Release(); // Finish current run.
+                    if (_semaphore.CurrentCount == 0) // Currently running + full queue.
+                        return;
 
-                    if (_semaphore.CurrentCount != _queueMax) // Check if anything left in queue.
+                    if (_semaphore.CurrentCount < _queueMax) // Currently running, queue is not full.
                     {
-                        _semaphore.Release();
-                        runOnceMore = true;
+                        _semaphore.Wait(_token); // Put 1 run into queue.
+                        return;
                     }
+
+                    _semaphore.Wait(_token); // Start run without queue.
                 }
 
-                if (runOnceMore)
-                    await RunAsync();
+                var runOnceMore = false;
+                if (_tokenSource.IsCancellationRequested)
+                    return;
+                try
+                {
+                    Action.Invoke();
+                }
+                finally
+                {
+                    if (!IsDisposed && !_tokenSource.IsCancellationRequested)
+                    {
+                        lock (_lock)
+                        {
+                            _semaphore.Release(); // Finish current run.
+                            if (_semaphore.CurrentCount != _queueMax) // Check if anything left in queue.
+                            {
+                                _semaphore.Release();
+                                runOnceMore = true;
+                            }
+                        }
+
+                        if (runOnceMore)
+                            await RunAsync();
+                    }
+                }
+            }
+            catch (OperationCanceledException) // Catch when RunQueue is disposed and someone waits in queue.
+            {
+                // ignore.
             }
         }
 
         /// <summary>
         /// Synchronous version of <see cref="RunAsync"/>.
         /// </summary>
-        public void Run() => RunAsync().Wait();
+        public void Run() => RunAsync().Wait(_token);
     }
 }

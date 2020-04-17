@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using Epsiloner;
 using Epsiloner.Collections;
 using Epsiloner.Cooldowns;
 using Epsiloner.Tasks;
@@ -23,6 +24,9 @@ namespace Sample_1
                 TimeSpan.FromSeconds(2),
                 Action,
                 TimeSpan.FromSeconds(5));
+
+            var i = 32;
+            _runQueue = new RunQueue(() => DoNothing(i));
         }
 
         private void Action()
@@ -45,6 +49,7 @@ namespace Sample_1
         private readonly SingleTaskExecutor<DateTime> _singleTaskExecutor = new SingleTaskExecutor<DateTime>();
         public ObservableCollection<DateTime> Dates { get; } = new ObservableCollection<DateTime>();
         private uint index = 0;
+        private RunQueue _runQueue;
 
         private void InitializeSingleTaskExecutor()
         {
@@ -68,5 +73,14 @@ namespace Sample_1
         }
 
         #endregion
+
+        private void btnRunQueue_OnClick(object sender, RoutedEventArgs e)
+        {
+            _runQueue.Run();
+        }
+
+        private void DoNothing(int i)
+        {
+        }
     }
 }

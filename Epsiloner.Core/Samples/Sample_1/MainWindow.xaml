@@ -14,6 +14,13 @@
         <Button 
             Content="Now"
             Click="btnNow_OnClick"/>
+        <Border 
+            BorderThickness="0 1 0 0"
+            BorderBrush="#333333"
+            Margin="10" />
+        <Button 
+            Content="Run Queue"
+            Click="btnRunQueue_OnClick"/>
 
         <Border 
             BorderThickness="0 1 0 0"
