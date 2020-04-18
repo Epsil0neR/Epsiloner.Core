@@ -28,6 +28,9 @@ namespace Epsiloner.Tasks
         private CancellationTokenSource _tokenSource;
         private TaskCompletionSource<TResult> _taskSource = new TaskCompletionSource<TResult>();
 
+        /// <summary>
+        /// TODO: Add documentation.
+        /// </summary>
         public Task<TResult> Task => _taskSource.Task;
 
         /// <summary>
@@ -93,23 +96,5 @@ namespace Epsiloner.Tasks
 
             return task;
         }
-    }
-
-    //TODO: Remove this tester.
-    internal class Tester
-    {
-        public Tester()
-        {
-            var executor = new SingleTaskExecutor<int>();
-            executor.Next(token => MyDoWorkAsync("my param", token));
-        }
-
-        private async Task<int> MyDoWorkAsync(string param, CancellationToken token)
-        {
-            await Task.Delay(1000, token);
-            return 100500;
-
-        }
-
     }
 }
