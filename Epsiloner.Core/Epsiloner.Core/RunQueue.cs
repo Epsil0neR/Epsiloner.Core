@@ -8,7 +8,7 @@ namespace Epsiloner
     /// Provides functionality to run action only once at time and in case the same action
     /// during execution is invoked multiple times - it will put invocations into queue and will run them in async.
     /// </summary>
-    public class RunQueue : IDisposable
+    public class RunQueue : DisposableObject
     {
         private readonly int _queueMax;
 
@@ -16,11 +16,6 @@ namespace Epsiloner
         private readonly SemaphoreSlim _semaphore;
         private readonly CancellationTokenSource _tokenSource;
         private readonly CancellationToken _token;
-
-        /// <summary>
-        /// Indicates if object already disposed.
-        /// </summary>
-        public bool IsDisposed { get; private set; }
 
         /// <summary>
         /// Action to invoke via <see cref="RunAsync"/>.
@@ -45,16 +40,12 @@ namespace Epsiloner
             Action = action ?? throw new ArgumentNullException(nameof(action));
         }
 
-
-        /// <inheritdoc />
-        public void Dispose()
+        protected override void DisposeManagedResources()
         {
-            if (IsDisposed)
-                return;
-
-            IsDisposed = true;
+            base.DisposeManagedResources();
             _tokenSource.Cancel();
-            _semaphore.Dispose();
+            lock (_lock)
+                _semaphore.Dispose();
         }
 
         /// <summary>
