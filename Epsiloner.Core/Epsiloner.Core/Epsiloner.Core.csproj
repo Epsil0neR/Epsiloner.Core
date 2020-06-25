@@ -13,8 +13,10 @@
     <AssemblyOriginatorKeyFile>Epsiloner libraries.pfx</AssemblyOriginatorKeyFile>
     <DelaySign>false</DelaySign>
     <RootNamespace>Epsiloner</RootNamespace>
-    <Version>1.0.21</Version>
+    <Version>1.0.22</Version>
     <PackageReleaseNotes>
+      v1.0.22:
+      - Added .snupkg
       v1.0.21:
       - Improved RunQueue.
       v1.0.20:
